@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-config_path=Path("config.json").resolve()
+config_path="D:\project\eshewa_backend\config.json"
 from dataclasses import dataclass
 from sqlalchemy import create_engine
 from urllib.parse import quote_plus

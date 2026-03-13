@@ -46,7 +46,8 @@ class DbConnection:
         self.database = DbConnection.db_credentials["DATABASE"]
         self.host = DbConnection.db_credentials["HOST"]
         self.password = quote_plus(DbConnection.db_credentials["PASSWORD"])
-
+        
+        # connection for ehsewa database 
         try:
             database_url = f"mysql+pymysql://root:{self.password}@{self.host}:3306/{self.database}"
 
@@ -63,7 +64,6 @@ class DbConnection:
 
         except Exception as e:
             print("Database connection error:", e)
-
         DbConnection._initialized = True
 
     def get_db(self):
@@ -72,5 +72,5 @@ class DbConnection:
             yield db
         finally:
             db.close()
-conn=DbConnection()
+
 
