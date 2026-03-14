@@ -5,6 +5,7 @@ from sqlalchemy import text
 from db_connection import DbConnection
 from models import response_model,db_model
 from utils import utility
+import random
 db_conn=DbConnection()
 
 router=APIRouter(
@@ -28,11 +29,13 @@ def register_user(
     userschema:response_model.user,
     db:Session=Depends(db_conn.get_db)
 ):
+    # generating random account number
+    account_number = random.randint(100000000000, 999999999999)
     print(userschema.password)
     print(type(userschema.password))
     hashed_pass=utility.hash_password(userschema.password)
     userschema.password=hashed_pass
-    new_user=db_model.User(**userschema.model_dump())
+    new_user=db_model.User(**userschema.model_dump(),account_number=account_number)
     db.add(new_user)
     db.commit()
     return new_user
