@@ -10,7 +10,13 @@ class UserResponse(BaseModel):
     id:int
     email:EmailStr
     created_at:datetime
-    
+
+class LoadEshewa:
+    sender_email:EmailStr
+    sender_pass:str
+    receiver_email:EmailStr
+    amount:int
+
 # class Register:
 
 
