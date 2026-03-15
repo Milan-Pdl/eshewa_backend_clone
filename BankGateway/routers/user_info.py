@@ -1,8 +1,8 @@
 from fastapi import FastAPI,Depends,status,HTTPException,APIRouter
 from sqlalchemy.orm import Session
-from BankGateway.db_conn import DbConnection
+from BankGateway.db_conn import DBConnection
 from sqlalchemy import text
-db_con=DbConnection()
+db_con=DBConnection()
 
 router=APIRouter(
     prefix='/bank',

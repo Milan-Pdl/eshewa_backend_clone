@@ -15,3 +15,17 @@ class User(Base):
     account_number = Column(BigInteger, unique=True, nullable=False)
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}')>"
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    transaction_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    sender_email = Column(String(55))
+    receiver_email = Column(String(55))
+    amount_transferred = Column(BigInteger)
+    transaction_type = Column(String(50))
+    transaction_purpose = Column(String(255))
+    transaction_timestamp = Column(DateTime, server_default=func.now())
+
+    def __repr__(self):
+        return f"<Transaction(id={self.transaction_id}, type='{self.transaction_type}', status='{self.transaction_status}')>"

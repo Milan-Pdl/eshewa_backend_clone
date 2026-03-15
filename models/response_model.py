@@ -11,12 +11,16 @@ class UserResponse(BaseModel):
     email:EmailStr
     created_at:datetime
 
-class LoadEshewa:
+class LoadEshewa(BaseModel):
     sender_email:EmailStr
     sender_pass:str
     receiver_email:EmailStr
     amount:int
+    purpose:str
 
-# class Register:
+# class Transactions:
+#     # this class is for respone model in loading money
+
+# # class Register:
 
 

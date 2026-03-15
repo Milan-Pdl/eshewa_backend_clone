@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from models import db_model,response_model
-from routers import user,authentication
+from routers import user,authentication,service
 from db_connection import DbConnection
 db_con=DbConnection()
 db_model.Base.metadata.create_all(db_con.engine)
@@ -16,4 +16,4 @@ db_model.Base.metadata.create_all(db_con.engine)
 app=FastAPI()
 app.include_router(user.router)
 app.include_router(authentication.router)
-
+app.include_router(service.router)

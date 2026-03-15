@@ -25,14 +25,14 @@ def get_db_congiguration(path) -> dict:
 
 
 
-class DbConnection:
+class DBConnection:
 
     _instance = None
     _initialized = False
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(DbConnection, cls).__new__(cls)
+            cls._instance = super(DBConnection, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
@@ -41,11 +41,11 @@ class DbConnection:
         if self._initialized:
             return
 
-        DbConnection.db_credentials = get_db_congiguration(config_path)
+        DBConnection.db_credentials = get_db_congiguration(config_path)
 
-        self.database = DbConnection.db_credentials["BANKDATABASE"]
-        self.host = DbConnection.db_credentials["HOST"]
-        self.password = quote_plus(DbConnection.db_credentials["PASSWORD"])
+        self.database = DBConnection.db_credentials["BANKDATABASE"]
+        self.host = DBConnection.db_credentials["HOST"]
+        self.password = quote_plus(DBConnection.db_credentials["PASSWORD"])
 
         try:
             database_url = f"mysql+pymysql://root:{self.password}@{self.host}:3306/{self.database}"
@@ -64,7 +64,7 @@ class DbConnection:
         except Exception as e:
             print("Database connection error:", e)
 
-        DbConnection._initialized = True
+        DBConnection._initialized = True
 
     def get_db(self):
         db = self.SessionLocal()
