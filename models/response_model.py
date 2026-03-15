@@ -18,6 +18,8 @@ class LoadEshewa(BaseModel):
     amount:int
     purpose:str
 
+
+
 # class Transactions:
 #     # this class is for respone model in loading money
 
