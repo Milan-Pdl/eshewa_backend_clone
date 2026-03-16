@@ -8,6 +8,7 @@
     amount bigint DEFAULT 0
     account number bigint
     ) 
+    
 -- transactions table
 create table transactions(
     sender_email varchar(55) unique,

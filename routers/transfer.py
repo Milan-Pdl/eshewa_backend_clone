@@ -7,6 +7,7 @@ from models import response_model,db_model
 from BankGateway.db_conn import DBConnection
 from utils.oauth2 import get_user
 from servicelogic.service import check_receive_eshewa_id,check_sender_email_status,get_eshewa_user_by_email
+from typing import List
 
 db_conn_bank=DBConnection()
 db_conn_eshewa=DbConnection()
@@ -56,6 +57,8 @@ def load_money_eshewa_to_eshewa(
     db: Session = Depends(db_conn_eshewa.get_db),
     current_user=Depends(get_user)
 ):
+    print(current_user.email)
+    print(type(current_user))
     # Check sender exists
     sender = get_eshewa_user_by_email(schema.sender_email, db)
     if sender is None:
@@ -103,6 +106,12 @@ def load_money_eshewa_to_eshewa(
 
     return {
         "success": True,
-        "message": f"{schema.amount} has been transferred from {schema.sender_email} to {schema.receiver_email}",
-        "transaction_id": transaction.id
+        "message": f"{schema.amount} has been transferred from {schema.sender_email} to {schema.receiver_email}"
     }
+
+@router.get("/history",status_code=status.HTTP_202_ACCEPTED,response_model=List[response_model.TransactionResponse])
+def get_user_transaction_history(db:Session=Depends(db_conn_eshewa.get_db),user=Depends(get_user)):
+    user_history=db.execute(text("select * from transactions where sender_email=:sender_email or receiver_email=:receiver_email"),
+                            params={"sender_email":user.email,"receiver_email":user.email}).mappings().all()
+    
+    return user_history
