@@ -7,3 +7,4 @@ def hash_password(password) ->str:
 def verify_password(user_pass,db_pass) ->bool:
     return password_hash.verify(user_pass,db_pass)
 
+#  thait
