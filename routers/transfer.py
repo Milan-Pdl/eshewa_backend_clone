@@ -6,7 +6,7 @@ from db_connection import DbConnection
 from models import response_model,db_model
 from BankGateway.db_conn import DBConnection
 from utils.oauth2 import get_user
-from servicelogic.service import check_receive_eshewa_id,check_sender_email_status,get_eshewa_user_by_email
+from servicelogic.service import check_receive_eshewa_id,check_sender_email_status, deduct_from_bank,get_eshewa_user_by_email
 from typing import List
 
 db_conn_bank=DBConnection()
@@ -33,11 +33,17 @@ def load_bank_to_eshewa(schema:response_model.LoadEshewa,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="no such user in eshewa")
     
-    db_bank.execute(text("UPDATE users SET Amount = Amount - :amt WHERE email=:email"),
-                    params={"amt":schema.amount,"email":schema.sender_email})
+    # db_bank.execute(text("UPDATE users SET Amount = Amount - :amt WHERE email=:email"),
+    #                 params={"amt":schema.amount,"email":schema.sender_email})
+    
+    success = deduct_from_bank(db_bank, schema.sender_email, schema.amount)
+
+    if not success:
+        raise HTTPException(status_code=400, detail="Bank deduction failed")
     
     db_eshewa.execute(text("UPDATE user SET amount = amount + :amt WHERE email=:email"),
                          params={"amt":schema.amount,"email":schema.receiver_email})
+    
     
 
     new_transaction=db_model.Transaction(sender_email=schema.sender_email,
@@ -47,7 +53,7 @@ def load_bank_to_eshewa(schema:response_model.LoadEshewa,
                          transaction_purpose=schema.purpose)
     db_eshewa.add(new_transaction)
     db_eshewa.commit()
-    db_bank.commit()
+         
     return {"success":"The money has load sucessfully"}
 
 

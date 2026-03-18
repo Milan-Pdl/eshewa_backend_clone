@@ -17,3 +17,6 @@ async def get_users(db:Session=Depends(db_con.get_db)):
     except Exception as e:
         print(e)
 
+@router.post('/users/account')
+async def user_trans(db:Session=Depends(db_con.get_db))
+    

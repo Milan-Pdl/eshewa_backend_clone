@@ -29,3 +29,21 @@ def get_eshewa_user_by_email(email: str, db: Session):
         {"email": email}
     ).mappings().first()
 
+def deduct_from_bank(db: Session, email: str, amount: float):
+    user = db.execute(
+        text("SELECT * FROM users WHERE email=:email"),
+        {"email": email}
+    ).fetchone()
+
+    if user is None:
+        return False
+
+    if user.Amount < amount:
+        return False
+
+    db.execute(
+        text("UPDATE users SET Amount = Amount - :amt WHERE email=:email"),
+        {"amt": amount, "email": email}
+    )
+
+    return True
