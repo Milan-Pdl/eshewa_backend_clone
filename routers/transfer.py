@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter,Depends,HTTPException,status
+from fastapi import APIRouter,Depends,HTTPException, Query,status
 from  sqlalchemy.orm import Session
 from sqlalchemy import text
 from db_connection import DbConnection
@@ -7,7 +7,7 @@ from models import response_model,db_model
 from BankGateway.db_conn import DBConnection
 from utils.oauth2 import get_user
 from servicelogic.service import check_receive_eshewa_id,check_sender_email_status, deduct_from_bank,get_eshewa_user_by_email
-from typing import List
+from typing import List, Optional
 
 db_conn_bank=DBConnection()
 db_conn_eshewa=DbConnection()
@@ -35,7 +35,7 @@ def load_bank_to_eshewa(schema:response_model.LoadEshewa,
     
     # db_bank.execute(text("UPDATE users SET Amount = Amount - :amt WHERE email=:email"),
     #                 params={"amt":schema.amount,"email":schema.sender_email})
-    
+
     success = deduct_from_bank(db_bank, schema.sender_email, schema.amount)
 
     if not success:
@@ -115,9 +115,79 @@ def load_money_eshewa_to_eshewa(
         "message": f"{schema.amount} has been transferred from {schema.sender_email} to {schema.receiver_email}"
     }
 
-@router.get("/history",status_code=status.HTTP_202_ACCEPTED,response_model=List[response_model.TransactionResponse])
-def get_user_transaction_history(db:Session=Depends(db_conn_eshewa.get_db),user=Depends(get_user)):
-    user_history=db.execute(text("select * from transactions where sender_email=:sender_email or receiver_email=:receiver_email"),
-                            params={"sender_email":user.email,"receiver_email":user.email}).mappings().all()
+# @router.get("/history",status_code=status.HTTP_202_ACCEPTED,response_model=List[response_model.TransactionResponse])
+# def get_user_transaction_history(db:Session=Depends(db_conn_eshewa.get_db),user=Depends(get_user)):
+#     user_history=db.execute(text("select * from transactions where sender_email=:sender_email or receiver_email=:receiver_email"),
+#                             params={"sender_email":user.email,"receiver_email":user.email}).mappings().all()
     
-    return user_history
+#     return user_history
+
+@router.get(
+    "/history",
+    status_code=status.HTTP_200_OK,
+    response_model=List[response_model.TransactionResponse]
+)
+def get_user_transaction_history(
+    db: Session = Depends(db_conn_eshewa.get_db),
+    user = Depends(get_user),
+
+    #  Filters
+    transaction_type: Optional[str] = Query(None),
+    min_amount: Optional[float] = Query(None),
+    max_amount: Optional[float] = Query(None),
+
+    # Date filters
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+
+    #  Pagination
+    limit: int = Query(10),
+    offset: int = Query(0),
+
+    #  Sorting
+    sort_by: str = Query("created_at"),   # column name
+    order: str = Query("desc")            # asc / desc
+):
+    
+    base_query = """
+    SELECT * FROM transactions
+    WHERE (sender_email = :email OR receiver_email = :email)
+    """
+
+    params = {"email": user.email}
+
+    # Apply filters
+    if transaction_type:
+        base_query += " AND transaction_type = :transaction_type"
+        params["transaction_type"] = transaction_type
+
+    if min_amount is not None:
+        base_query += " AND amount_transferred >= :min_amount"
+        params["min_amount"] = min_amount
+
+    if max_amount is not None:
+        base_query += " AND amount_transferred <= :max_amount"
+        params["max_amount"] = max_amount
+
+    if start_date:
+        base_query += " AND created_at >= :start_date"
+        params["start_date"] = start_date
+
+    if end_date:
+        base_query += " AND created_at <= :end_date"
+        params["end_date"] = end_date
+
+    #  Sorting
+    if order.lower() not in ["asc", "desc"]:
+        order = "desc"
+
+    base_query += f" ORDER BY {sort_by} {order}"
+
+    #  Pagination
+    base_query += " LIMIT :limit OFFSET :offset"
+    params["limit"] = limit
+    params["offset"] = offset
+
+    result = db.execute(text(base_query), params).mappings().all()
+
+    return result
